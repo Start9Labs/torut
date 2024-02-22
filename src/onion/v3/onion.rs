@@ -1,8 +1,8 @@
 //! onion module contains utils for working with Tor's onion services
 
 use std::error::Error;
-use std::fmt::{Display, Formatter};
 use std::fmt;
+use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
 use sha3::Digest;
@@ -19,17 +19,8 @@ pub const TORV3_ONION_ADDRESS_LENGTH_BYTES: usize = 34;
 
 /// OnionAddressV3 contains public part of Tor's onion service address version 3.,
 /// It can't contain invalid onion address
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct OnionAddressV3([u8; TORV3_ONION_ADDRESS_LENGTH_BYTES]);
-
-impl PartialEq for OnionAddressV3 {
-    #[inline]
-    fn eq(&self, other: &Self) -> bool {
-        &self.0[..] == &other.0[..]
-    }
-}
-
-impl Eq for OnionAddressV3 {}
 
 impl From<&TorPublicKeyV3> for OnionAddressV3 {
     fn from(tpk: &TorPublicKeyV3) -> Self {
@@ -123,9 +114,14 @@ impl FromStr for OnionAddressV3 {
             return Err(OnionAddressParseError::InvalidLength);
         }
         let mut buf = [0u8; 56];
-        raw_onion_address.as_bytes().iter().copied().enumerate().for_each(|(i, b)| {
-            buf[i] = b;
-        });
+        raw_onion_address
+            .as_bytes()
+            .iter()
+            .copied()
+            .enumerate()
+            .for_each(|(i, b)| {
+                buf[i] = b;
+            });
 
         let res = match base32::decode(BASE32_ALPHA, raw_onion_address) {
             None => return Err(OnionAddressParseError::Base32Error),
@@ -191,7 +187,9 @@ mod test {
     //noinspection SpellCheckingInspection
     #[test]
     fn test_can_convert_to_public_key_and_vice_versa() {
-        let oa = OnionAddressV3::from_str("p53lf57qovyuvwsc6xnrppyply3vtqm7l6pcobkmyqsiofyeznfu5uqd").unwrap();
+        let oa =
+            OnionAddressV3::from_str("p53lf57qovyuvwsc6xnrppyply3vtqm7l6pcobkmyqsiofyeznfu5uqd")
+                .unwrap();
         let pk = oa.get_public_key();
         let oa2 = pk.get_onion_address();
         assert_eq!(oa, oa2);

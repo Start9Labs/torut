@@ -13,7 +13,7 @@ pub const TORV3_PUBLIC_KEY_LENGTH: usize = ed25519_dalek::PUBLIC_KEY_LENGTH;
 pub const TORV3_SECRET_KEY_LENGTH: usize = ed25519_dalek::EXPANDED_SECRET_KEY_LENGTH;
 
 /// TorPublicKeyV3 describes onion service's public key(use to connect to onion service)
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 pub struct TorPublicKeyV3(pub(crate) [u8; TORV3_PUBLIC_KEY_LENGTH]);
 
@@ -65,7 +65,9 @@ impl TorPublicKeyV3 {
     /// * `InternalError::BytesLengthError`
     /// * `InternalError::PointDecompressionError`
     #[inline]
-    pub fn from_bytes(bytes: &[u8; TORV3_PUBLIC_KEY_LENGTH]) -> Result<TorPublicKeyV3, SignatureError> {
+    pub fn from_bytes(
+        bytes: &[u8; TORV3_PUBLIC_KEY_LENGTH],
+    ) -> Result<TorPublicKeyV3, SignatureError> {
         PublicKey::from_bytes(bytes).map(|_pk| TorPublicKeyV3(bytes.clone()))
     }
 
